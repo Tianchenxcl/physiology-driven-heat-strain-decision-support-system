@@ -1,8 +1,19 @@
-# PDCAN: physiology-driven heat-strain intervention simulation
+# A physiology-driven decision support system for heat-strain intervention planning in construction
 
-This repository accompanies our manuscript, *A physiology-driven decision support model for simulating heat strain interventions in construction*. We provide the processed data, source code, model artifacts, result tables, and figure files needed to inspect the analysis and reproduce the main computational workflows.
+This repository provides the research implementation and reproducibility materials for the manuscript of the same title. The proposed decision support system links worker-state information, candidate management interventions, and predicted physiological responses, providing a computational basis for managers to compare and select heat-safety intervention plans before implementation.
 
-The study is organised around a simple question: given a worker’s current physiological state, recent history, and a specified future control sequence, can the model project how heart rate, skin temperature, core temperature, and heat-strain risk may evolve over the next 15 minutes? The repository follows the same order as the manuscript: model definition and forecasting, model comparison and component ablation, and bounded control-sequence scenario simulation.
+The **Physiology-Driven Control-Aware Network (PDCAN)** is the system’s core predictive component. Given static worker characteristics, historical physiological and environmental states, and predefined future environmental and workload controls, it predicts minute-by-minute trajectories of heart rate (HR), skin temperature (Tskin), and core body temperature (Tcore) over the next 15 minutes and estimates mPSI at the end of the forecast horizon. The repository includes processed data, source code, trained model artifacts, result tables, and figures supporting predictive evaluation and intervention-scenario comparison.
+
+## Decision support workflow
+
+| Stage | Role in the system |
+|---|---|
+| Worker-state representation | Combine static worker characteristics with a 30-minute history of physiological, environmental, and workload observations. |
+| Candidate intervention inputs | Represent continued work, rest, rest combined with environmental improvement, and workload reduction as alternative 15-minute future control sequences. |
+| Physiological prediction and heat-strain estimation | Use PDCAN to generate HR, Tskin, and Tcore trajectories and estimate final mPSI through a physiological formula with residual calibration. |
+| Intervention-plan comparison | Hold individual characteristics and observed history constant, compare the predicted responses across candidate sequences, and provide information for managerial decisions about feasible site interventions. |
+
+The system extends risk prediction and warning by linking specified management actions to projected physiological outcomes. The supplied scripts implement the computational workflow and scenario analyses; they do not automatically optimise or execute intervention plans. Evaluation uses controlled heat-exposure data, while the scenario results demonstrate how the system can support short-term intervention-plan comparison for construction heat-safety management.
 
 ## What is included
 
@@ -46,13 +57,13 @@ The figure files are collected in [`FIGURES.md`](FIGURES.md). A few representati
 
 <img src="figures/manuscript/Fig01_prediction_timeline.png" alt="Forecasting timeline" width="720">
 
-The model receives a 30-minute historical window and a predefined 15-minute future control sequence. The control sequence begins at the decision time and is used to project physiological trajectories.
+At the decision time, the system receives a 30-minute historical window and a predefined control sequence covering the following 15 minutes. The sequence specifies environmental exposure and workload throughout the forecast horizon, including the timing of planned changes.
 
-### PDCAN architecture
+### Core predictive component: PDCAN
 
 <img src="figures/manuscript/Fig02_pdcan_architecture.png" alt="PDCAN architecture" width="900">
 
-Static worker characteristics, historical physiological and environmental states, and future control conditions are encoded jointly. The decoder produces the three physiological trajectories and the final mPSI estimate.
+PDCAN separately encodes static worker characteristics, historical physiological and environmental states, and future control conditions before fusing their representations. Its control-aware recurrent decoder generates the three physiological trajectories without feeding previous predicted physiological outputs into subsequent steps. Trajectory smoothness regularization and joint training support multivariable prediction, while a physiological formula and residual calibration module produce the final mPSI estimate.
 
 ### Forecasting performance
 
@@ -62,17 +73,26 @@ The step-wise evaluation compares PDCAN with the three baseline sequence models 
 
 <img src="figures/manuscript/Fig08_mpsi_predicted_vs_observed.png" alt="Predicted versus observed mPSI" width="760">
 
-The mPSI comparison evaluates the model’s final risk estimate against the observed test-set value.
+The mPSI comparison evaluates the model’s final heat-strain estimate against the observed test-set value. On the fixed 336-window test set from controlled heat-exposure experiments, the reported results are:
 
-### Bounded intervention scenarios
+| Measure | PDCAN result |
+|---|---:|
+| Final mPSI MAE | 0.602 |
+| Final mPSI RMSE | 0.821 |
+| Final mPSI R² | 0.920 |
+| Tcore trajectory MAE | 0.068 °C |
+
+PDCAN outperformed the GRU, LSTM, and Transformer baselines on the evaluated physiological trajectory prediction tasks. Detailed results are provided in [`results/model_comparison/final_test_summary_all_models.csv`](results/model_comparison/final_test_summary_all_models.csv); component-ablation results are available under [`results/ablation/`](results/ablation/).
+
+### Intervention-scenario comparison
 
 <img src="figures/manuscript/Fig10_scenario_trajectories.png" alt="Scenario physiological trajectories" width="900">
 
-For six representative workload-transition blocks, the same current state is paired with four future control sequences. The alternative sequences are model projections; the observed workload-reduction sequence is the factual reference.
+For six representative workload-transition blocks, the system holds individual characteristics and observed history constant and evaluates four future control sequences. Comparing the resulting cardiovascular and thermal trajectories provides complementary information about the predicted response to each candidate intervention. The alternative sequences are model projections; the observed workload-reduction sequence is the factual reference.
 
 <img src="figures/manuscript/Fig11_scenario_final_mpsi.png" alt="Scenario final mPSI" width="760">
 
-This paired comparison shows how the projected final mPSI changes across the four control sequences. The results are descriptive and support scenario comparison rather than causal-effect estimation.
+This paired comparison shows how the projected final mPSI changes across the four control sequences. Managers can compare these estimates alongside the physiological trajectories when considering feasible site interventions. The results support descriptive scenario comparison and do not establish causal intervention effects.
 
 ## Reproduce the Section 5.6 scenario experiment
 
@@ -100,10 +120,8 @@ The processed matrices were reconstructed from the public FACT dataset (PROSPIE)
 
 > Havenith, G., Davey, S., Downie, V., Griggs, K., and Richmond, V. (2024). *Dataset for “Prediction of Core Body Temperature from Multiple Variables” and “The physiological strain index does not reliably identify individuals at risk of reaching a thermal tolerance limit” PROSPIE project*. Loughborough University Research Repository. https://doi.org/10.17028/rd.lboro.26076577.v1
 
-The original dataset should be obtained from and cited at its source record. Before public release, the redistribution terms for the processed matrices should be checked. If the source terms do not permit redistribution, the data files should be removed from the public repository and replaced by a documented reconstruction procedure.
+Consult and cite the original dataset record for the data-collection protocol, source-data provenance, and reuse conditions. The processed matrices and their schema are documented in [`data/README.md`](data/README.md).
 
-## Suggested Data Availability statement
+## Data availability
 
-> The processed data analysed in this study were reconstructed from the publicly available FACT dataset (PROSPIE). The processed training and fixed-test datasets, selected scenario inputs, PDCAN model checkpoint and scaling parameters, analysis scripts, notebooks, result tables, and figure source files are available at https://github.com/Tianchenxcl/pdcan-heat-strain-intervention-simulation. The original FACT/PROSPIE dataset should be obtained from and cited at its original public source.
-
-
+> The processed data and code supporting this study are publicly available at: https://github.com/Tianchenxcl/pdcan-heat-strain-intervention-simulation.

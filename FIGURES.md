@@ -1,18 +1,18 @@
 # Figures from the manuscript
 
-This page places the manuscript figures in one sequence so that readers can move from the forecasting setup to the model architecture, predictive evaluation, component analysis, and intervention scenarios.
+These figures document the computational workflow of the physiology-driven decision support system for heat-strain intervention planning in construction. They cover the forecasting setup, PDCAN as the core predictive component, predictive evaluation, component analysis, and comparison of candidate intervention scenarios.
 
 ## Fig. 1. Schematic diagram of the model prediction timeline
 
 <img src="figures/manuscript/Fig01_prediction_timeline.png" alt="Model prediction timeline" width="800">
 
-The blue segment is the 30-minute historical input window. At the decision time, a predefined future control sequence is supplied to the model, which projects physiological states over the following 15 minutes.
+The blue segment is the 30-minute historical input window. At the decision time, the system receives a predefined environmental and workload control sequence covering the following 15 minutes and projects the corresponding physiological states. Planned control changes can occur within this forecast horizon.
 
 ## Fig. 2. Structure of PDCAN
 
 <img src="figures/manuscript/Fig02_pdcan_architecture.png" alt="PDCAN architecture" width="1000">
 
-PDCAN combines static worker features, historical physiological and environmental states, and future control conditions. Its outputs are HR, skin-temperature, and core-temperature trajectories, together with the final mPSI estimate.
+PDCAN is the system’s core predictive component. It separately encodes static worker features, historical physiological and environmental states, and future control conditions before fusing their representations. It predicts HR, Tskin, and Tcore trajectories and estimates final mPSI, supplying the physiological information used for intervention-plan comparison.
 
 ## Fig. 3. PDCAN encoder
 
@@ -24,7 +24,7 @@ The encoder forms a static embedding, extracts local temporal patterns with a TC
 
 <img src="figures/manuscript/Fig04_decoder_detail.png" alt="Control-aware recurrent decoder" width="1000">
 
-The decoder rolls forward across the 15-minute horizon using the supplied control sequence and produces the multivariable physiological trajectories used by the risk head.
+The decoder propagates temporal information through recurrent hidden states and incorporates the corresponding control conditions at each step of the 15-minute horizon. It generates HR, Tskin, and Tcore trajectories without feeding previous predicted physiological outputs into subsequent steps. The predicted physiological states are then used to estimate final mPSI through a physiological formula with residual calibration.
 
 ## Fig. 5. Heart-rate MAE across prediction steps
 
@@ -60,11 +60,10 @@ The residual distribution provides a complementary view of the final mPSI predic
 
 <img src="figures/manuscript/Fig10_scenario_trajectories.png" alt="Scenario physiological trajectories" width="1000">
 
-The figure compares predicted HR, skin temperature, and core temperature under continued work, rest, rest plus environmental improvement, and observed workload reduction for the six representative transition blocks.
+The figure compares predicted HR, Tskin, and Tcore under continued work, rest, rest plus environmental improvement, and observed workload reduction for the six representative transition blocks. Individual characteristics and observed history are held constant across candidate sequences, allowing the system to compare their predicted cardiovascular and thermal responses.
 
 ## Fig. 11. Predicted final mPSI across control-sequence scenarios
 
 <img src="figures/manuscript/Fig11_scenario_final_mpsi.png" alt="Scenario final mPSI" width="850">
 
-The paired lines show the projected change in final mPSI for each representative transition block. The alternative scenarios are model projections; the observed workload-reduction sequence is the factual reference.
-
+The paired lines show the projected change in final mPSI for each representative transition block. Together with the physiological trajectories in Fig. 10, these estimates provide information for comparing candidate intervention plans before implementation. The alternative scenarios are model projections; the observed workload-reduction sequence is the factual reference.
