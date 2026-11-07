@@ -124,4 +124,4 @@ Consult and cite the original dataset record for the data-collection protocol, s
 
 ## Data availability
 
-> The processed data and code supporting this study are publicly available at: https://github.com/Tianchenxcl/pdcan-heat-strain-intervention-simulation.
+> The processed data and code supporting this study are publicly available at: https://github.com/Tianchenxcl/physiology-driven-heat-strain-decision-support-system.
